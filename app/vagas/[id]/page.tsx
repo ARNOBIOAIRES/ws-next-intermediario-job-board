@@ -2,15 +2,10 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JobPostingCard from "./job-posting-card";
-
-async function fetchJob(jobId: string) {
-  const res = await fetch(
-    `https://apis.codante.io/api/job-board/jobs/${jobId}`,
-  );
-  if (!res.ok) return undefined;
-  const data = await res.json();
-  return data.data;
-}
+import CommentsSection from "./comments-section";
+import { Suspense } from "react";
+import JobDetailsSkeleton from "./job-details-skeleton";
+import CommentsSkeleton from "./comments-skeleton";
 
 export default async function JobPosting({
   params,
@@ -18,11 +13,6 @@ export default async function JobPosting({
   params: Promise<{ id: string }>;
 }) {
   const jobId = (await params).id;
-  const job = await fetchJob(jobId);
-
-  if (!job) {
-    notFound();
-  }
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -35,7 +25,13 @@ export default async function JobPosting({
           Todas as Vagas
         </Link>
       </div>
-      <JobPostingCard job={job} />
+
+      <Suspense fallback={<JobDetailsSkeleton />}>
+        <JobPostingCard jobId={jobId} />
+      </Suspense>
+      <Suspense fallback={<JobDetailsSkeleton />}>
+        <CommentsSection jobId={jobId} />
+      </Suspense>
     </div>
   );
 }
